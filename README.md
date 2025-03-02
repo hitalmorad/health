@@ -65,3 +65,5 @@ A **comprehensive health, fitness, and food** application that brings together m
 
 
 ![Image](https://github.com/user-attachments/assets/e2d9cfb6-b500-478d-bd66-a44d79bce4a0)
+![WhatsApp Image 2025-03-02 at 10 37 33_6fb78fd9](https://github.com/user-attachments/assets/54f45e7d-25de-4f7f-b7d7-5698ee439f3a)
+

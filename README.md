@@ -63,4 +63,5 @@ A **comprehensive health, fitness, and food** application that brings together m
 ✔️ Personalized fitness & meal plans  
 ✔️ Smart notifications for better health management  
 
-Would you like me to add any additional details? 🚀
+
+![Image](https://github.com/user-attachments/assets/e2d9cfb6-b500-478d-bd66-a44d79bce4a0)

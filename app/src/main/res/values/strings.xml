@@ -4,4 +4,10 @@
     <string name="the_tolet">the tolet</string>
     <string name="find_house">find house</string>
     <string name="login">Login</string>
+    <string name="openweathermap_api_key">edec707d0f932fc35f6ce78335cb1f03</string>
+    <string name="nutritionix_app_id">8b8f54ee</string>
+    <string name="nutritionix_api_key">edeb2023e9df690abda6e8bafd6d4c1f</string>
+    <string name="grok_api_key">YOUR_GROK_API_KEY</string>
+
+    <string name="default_web_client_id">167991217431-8f2gn6u2apssg61ep3l0l0ood2v60kck.apps.googleusercontent.com</string>
 </resources>

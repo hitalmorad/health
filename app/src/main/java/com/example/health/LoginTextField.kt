@@ -1,5 +1,6 @@
 package com.example.health
 
+import android.content.Intent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
@@ -15,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -34,6 +36,7 @@ fun LoginTextField(
 ) {
     val uiColor: Color = if (isSystemInDarkTheme()) Color.White else Color.Black
     var passwordVisible by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     TextField(
         value = value,
@@ -50,7 +53,7 @@ fun LoginTextField(
 
         trailingIcon = {
             if (trailing.isNotEmpty()) {
-                TextButton(onClick = { /* Forgot Password Logic */ }) {
+                TextButton(onClick = { context.startActivity(Intent(context, ForgotPasswordActivity::class.java)) }) {
                     Text(text = trailing, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium), color = uiColor)
                 }
             }

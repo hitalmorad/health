@@ -9,7 +9,7 @@ data class Doctor(
     val practice: Practice,
     val fees: Fees,
     val ratings: Ratings,
-    val imageUrl: String
+    val imageUrl: String?
 )
 
 data class Practice(

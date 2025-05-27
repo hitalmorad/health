@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Application
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
@@ -43,7 +42,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application), T
     }
 
     private val generativeModel: GenerativeModel = GenerativeModel(
-        modelName = "gemini-1.5-pro",
+        modelName = "gemini-2.0-flash",
         apiKey = Constants.apiKey
     )
 
@@ -167,13 +166,17 @@ class ChatViewModel(application: Application) : AndroidViewModel(application), T
     override fun onCleared() {
         super.onCleared()
         stopServices()
+        // Clean up TTS and SpeechRecognizer resources
+        tts?.shutdown()
+        speechRecognizer?.destroy()
+        tts = null
+        speechRecognizer = null
     }
 
     fun stopServices() {
         tts?.stop()
         speechRecognizer?.stopListening()
     }
-
 
 }
 

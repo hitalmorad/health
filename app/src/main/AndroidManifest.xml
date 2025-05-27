@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.MANAGE_AUDIO_INPUT"/>
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="true"
@@ -20,6 +28,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ComposeLoginScreenInit"
         tools:targetApi="31">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCgu05c7fh4V_l9WiGwMybgMuRe0t5Pdtc"/>
 
         <receiver
             android:name=".reminder.ReminderReceiver"
@@ -40,12 +52,16 @@
         </activity>
 
         <activity android:name=".SpecialtyActivity"/>
-        <activity android:name=".doctor.DoctorDetailActivity" />
         <activity android:name=".doctor.DoctorListActivity" />
         <activity android:name=".HomeScreenActivity"/>
         <activity android:name=".FoodScreenActivity"/>
         <activity android:name=".FitnessScreenActivity"/>
-        <activity android:name=".reminder.ReminderScreenActivity"/>
+        <activity android:name=".reminder.ReminderActivity"/>
+        <activity android:name=".ForgotPasswordActivity"/>
+        <activity android:name=".LoginActivity"/>
+        <activity android:name=".LocationActivity"/>
+        <activity android:name=".HealthActivity"/>
+
 
         <activity android:name=".chat.HelpActivity" />
 

@@ -2,5 +2,5 @@ package com.example.health.chat
 
 object Constants {
 
-    val apiKey = "AIzaSyC8CVPgEGc8YlgRsvuQBjt-08zFqdFNKQY"
+    val apiKey = "AIzaSyBDSnu4frUnCfcKpZeVzn0X9ht6kDpD8dw"
 }

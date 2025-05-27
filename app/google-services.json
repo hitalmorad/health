@@ -12,7 +12,12 @@
           "package_name": "com.example.health"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "167991217431-8f2gn6u2apssg61ep3l0l0ood2v60kck.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBpJ24mqNM8GpF3qgQ0yxfwp9HJ_ysXMb0"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "167991217431-8f2gn6u2apssg61ep3l0l0ood2v60kck.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

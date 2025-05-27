@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.util.Base64
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -12,10 +11,23 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,33 +36,41 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
-import com.chaquo.python.Python
-import com.chaquo.python.android.AndroidPlatform
-import java.io.ByteArrayOutputStream
+import com.example.health.api.FoodAnalysisResponse
+import com.example.health.api.FoodAnalyzerApi
+import com.example.health.api.FoodRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class FoodScreenActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (!Python.isStarted()) {
-            Python.start(AndroidPlatform(this))
-        }
-
         setContent {
-            FoodScreen()
+            val foodViewModel = viewModel { FoodViewModel(FoodRepository(FoodAnalyzerApi.create())) }
+            FoodScreen(foodViewModel)
         }
     }
 }
 
 @Composable
-fun FoodScreen() {
+fun FoodScreen(viewModel: FoodViewModel) {
     val context = LocalContext.current
     val imageUri = remember { mutableStateOf<Uri?>(null) }
-    val nutritionData = remember { mutableStateOf<Map<String, String>?>(null) }
-    val isLoading = remember { mutableStateOf(false) }
+
+    val analysisResult by viewModel.analysisResult.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
         if (bitmap == null) {
@@ -61,13 +81,9 @@ fun FoodScreen() {
         val uri = saveImageToCache(context, bitmap)
         imageUri.value = uri
 
-        isLoading.value = true
-        val base64Image = encodeImageToBase64(bitmap)
-        fetchNutritionDetails(base64Image, nutritionData, context) {
-            isLoading.value = false
-        }
+        val imageFile = File(uri.path!!)
+        viewModel.analyzeFood(imageFile)
     }
-
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -84,71 +100,84 @@ fun FoodScreen() {
         imageUri.value?.let { uri ->
             Spacer(modifier = Modifier.height(10.dp))
             Image(
-                painter = rememberAsyncImagePainter(uri),
+                painter = rememberAsyncImagePainter(
+                    model = uri,
+                    // Optionally force Coil to skip cache for this URI
+                    // You can uncomment this if unique file names aren't sufficient
+                    // placeholder = null,
+                    // error = null,
+                    // onSuccess = null,
+                    // onError = null,
+                    // builder = {
+                    //     memoryCachePolicy(CachePolicy.DISABLED)
+                    //     diskCachePolicy(CachePolicy.DISABLED)
+                    // }
+                ),
                 contentDescription = "Captured Image",
                 modifier = Modifier.fillMaxWidth().height(200.dp)
             )
         }
 
-        if (isLoading.value) {
+        if (isLoading) {
             CircularProgressIndicator(modifier = Modifier.padding(16.dp))
         } else {
-            NutritionCard(nutritionData.value)
+            AnalysisCard(analysisResult)
         }
     }
 }
 
 @Composable
-fun NutritionCard(nutritionInfo: Map<String, String>?) {
+fun AnalysisCard(result: FoodAnalysisResponse?) {
     Card(
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth().padding(10.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("🍽 Nutrition Details", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("🍽 Detected Food Items", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(10.dp))
 
-            nutritionInfo?.let { data ->
-                data.forEach { (key, value) ->
-                    Text("$key: $value", fontSize = 14.sp, modifier = Modifier.padding(2.dp))
+            if (!result?.foodItems.isNullOrEmpty()) {
+                result?.foodItems?.forEach { food ->
+                    Text("- $food")
                 }
+            } else {
+                Text("🔍 No food items detected.")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("📊 Nutrition Details", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(10.dp))
+
+            result?.nutritionInfo?.let { data ->
+                Text("Calories: ${data.calories} kcal")
+                Text("Protein: ${data.protein} g")
+                Text("Carbs: ${data.carbs} g")
+                Text("Fats: ${data.fats} g")
             } ?: Text("📊 Nutrition details will appear here after analysis.")
         }
     }
 }
 
+class FoodViewModel(private val repository: FoodRepository) : ViewModel() {
+    private val _analysisResult = MutableStateFlow<FoodAnalysisResponse?>(null)
+    val analysisResult: StateFlow<FoodAnalysisResponse?> = _analysisResult.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    fun analyzeFood(imageFile: File) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _analysisResult.value = repository.analyzeFood(imageFile)
+            _isLoading.value = false
+        }
+    }
+}
+
 fun saveImageToCache(context: Context, bitmap: Bitmap): Uri {
-    val file = File(context.cacheDir, "captured_image.jpg")
+    // Generate a unique file name using a timestamp
+    val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+    val file = File(context.cacheDir, "captured_image_$timestamp.jpg")
     FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it) }
     return file.toUri()
-}
-
-fun encodeImageToBase64(bitmap: Bitmap): String {
-    val byteArrayOutputStream = ByteArrayOutputStream()
-    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
-    return Base64.encodeToString(byteArrayOutputStream.toByteArray(), Base64.DEFAULT)
-}
-
-fun fetchNutritionDetails(
-    base64Image: String,
-    nutritionData: MutableState<Map<String, String>?>,
-    context: Context,
-    onComplete: () -> Unit
-) {
-    val py = Python.getInstance()
-    val pyObject = py.getModule("v2")
-
-    val result = pyObject.callAttr("process_food_image", base64Image).toString()
-
-    try {
-        val parsedData = result.split(",").associate {
-            val parts = it.split(":")
-            parts[0].trim() to parts[1].trim()
-        }
-        nutritionData.value = parsedData
-    } catch (e: Exception) {
-        Toast.makeText(context, "Error parsing data", Toast.LENGTH_SHORT).show()
-    } finally {
-        onComplete()
-    }
 }

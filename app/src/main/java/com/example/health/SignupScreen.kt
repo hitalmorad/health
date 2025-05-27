@@ -106,7 +106,7 @@ fun SignUpScreen(navController: NavController) {
             SignUpTextField(value = name, onValueChange = { name = it }, label = "Full Name")
             SignUpTextField(value = phone, onValueChange = { phone = it }, label = "Phone Number")
             SignUpTextField(value = age, onValueChange = { age = it }, label = "Age")
-            SignUpTextField(value = email, onValueChange = { email = it }, label = "Email Address")
+            SignUpTextField(value = email, onValueChange = { email = it }, label = "Email com.example.health.api.Address")
             SignUpTextField(value = password, onValueChange = { password = it }, label = "Password", isPassword = true)
             SignUpTextField(value = confirmPassword, onValueChange = { confirmPassword = it }, label = "Confirm Password", isPassword = true)
 

@@ -1,5 +1,17 @@
 package com.example.health
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.OptIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -30,18 +42,54 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
+import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 
+
+class LoginActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            val navController = rememberNavController()
+            LoginScreen(navController)
+        }
+    }
+}
 @Composable
 fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
+    var context = LocalContext.current
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        handleGoogleSignInResult(
+            result = result,
+            onSuccess = { user ->
+                Toast.makeText(context, "Google Sign-In successful: ${user?.displayName}", Toast.LENGTH_SHORT).show()
+                navController.navigate("home")
+            },
+            onFailure = { exception ->
+                Toast.makeText(context, "Google Sign-In failed: ${exception.message}", Toast.LENGTH_LONG).show()
+            }
+        )
+    }
 
     Surface {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -79,19 +127,75 @@ fun LoginScreen(navController: NavController) {
                         SocialMediaLogin(
                             logo = R.drawable.google, text = "Google",
                             modifier = Modifier.weight(1f),
-                            onClick = { /*signInWithGoogle(navController)*/ }
+                            onClick = { signInWithGoogle(context,  launcher) }
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         SocialMediaLogin(
                             logo = R.drawable.facebook, text = "Facebook",
                             modifier = Modifier.weight(1f),
-                            onClick = { /*signInWithFacebook(navController)*/ }
+                            onClick = { /*signInWithFacebook(context, navController)*/ }
                         )
                     }
                 }
             }
         }
     }
+}
+
+
+@OptIn(UnstableApi::class)
+fun handleGoogleSignInResult(
+    result: ActivityResult,
+    onSuccess: (FirebaseUser?) -> Unit,
+    onFailure: (Exception) -> Unit
+) {
+    if (result.resultCode == Activity.RESULT_OK) {
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+            FirebaseAuth.getInstance().signInWithCredential(credential)
+                .addOnCompleteListener { authTask ->
+                    if (authTask.isSuccessful) {
+                        onSuccess(authTask.result?.user)
+                    } else {
+                        onFailure(authTask.exception ?: Exception("Firebase authentication failed"))
+                    }
+                }
+        } catch (e: ApiException) {
+            onFailure(e)
+        }
+    } else {
+        onFailure(Exception("Google Sign-In canceled or failed"))
+    }
+}
+
+@OptIn(UnstableApi::class)
+fun signInWithGoogle(
+    context: Context,
+    launcher: ActivityResultLauncher<Intent>
+) {
+    val googleApiAvailability = GoogleApiAvailability.getInstance()
+    val resultCode = googleApiAvailability.isGooglePlayServicesAvailable(context)
+    if (resultCode != ConnectionResult.SUCCESS) {
+        val errorMsg = when (resultCode) {
+            ConnectionResult.SERVICE_MISSING -> "Google Play Services missing"
+            ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED -> "Google Play Services update required"
+            ConnectionResult.SERVICE_DISABLED -> "Google Play Services disabled"
+            else -> "Google Play Services error: $resultCode"
+        }
+        Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+        return
+    }
+
+    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        .requestIdToken(context.getString(R.string.default_web_client_id))
+        .requestEmail()
+        .build()
+
+    val googleSignInClient = GoogleSignIn.getClient(context, gso)
+    val signInIntent = googleSignInClient.signInIntent
+    launcher.launch(signInIntent)
 }
 
 @Composable
@@ -115,7 +219,7 @@ private fun LoginSection(
             value = password,
             onValueChange = onPasswordChange,
             trailing = "Forgot?",
-            isPassword = true // Hides password input
+            isPassword = true// Hides password input
         )
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -217,4 +321,38 @@ private fun TopScreen() {
 
         )
     }
+
+// ------------------------------- sign in with Google ------------------------
+
+    fun signInWithGoogle(
+    ){
+    }
+
+    fun handleGoogleSignInResult(
+        result: ActivityResult,
+        onSuccess: (FirebaseUser?) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(ApiException::class.java)
+                val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+                FirebaseAuth.getInstance().signInWithCredential(credential)
+                    .addOnCompleteListener { authTask ->
+                        if (authTask.isSuccessful) {
+                            onSuccess(authTask.result?.user)
+                        } else {
+                            onFailure(authTask.exception ?: Exception("Google Sign-In failed"))
+                        }
+                    }
+            } catch (e: ApiException) {
+                onFailure(e)
+            }
+        } else {
+            onFailure(Exception("Google Sign-In canceled"))
+        }
+    }
+
+
 }

@@ -1,6 +1,5 @@
 package com.example.health
 
-
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -358,7 +357,7 @@ class HealthActivity : ComponentActivity() {
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.ArrowUpward,
+                                    imageVector = Icons.Default.Close,
                                     contentDescription = "Upload Icon",
                                     tint = Color(0xFF666666),
                                     modifier = Modifier.size(32.dp)
@@ -445,12 +444,15 @@ class HealthActivity : ComponentActivity() {
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Row(
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f, fill = false)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.ArrowUpward,
@@ -465,7 +467,9 @@ class HealthActivity : ComponentActivity() {
                                         style = MaterialTheme.typography.bodyMedium.copy(
                                             fontSize = 14.sp,
                                             color = Color(0xFF333333)
-                                        )
+                                        ),
+                                        maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
@@ -480,17 +484,18 @@ class HealthActivity : ComponentActivity() {
                             IconButton(
                                 onClick = onCancel,
                                 modifier = Modifier
+                                    .size(40.dp)
                                     .clip(RoundedCornerShape(50))
                                     .background(Color(0xFFFF4444))
+                                    .padding(8.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
-                                    contentDescription = "Send",
+                                    contentDescription = "Cancel Upload",
                                     tint = Color.White,
                                     modifier = Modifier.size(24.dp)
                                 )
                             }
-
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         LinearProgressIndicator(
@@ -585,7 +590,7 @@ class HealthActivity : ComponentActivity() {
     }
 
     object GeminiAnalyzer {
-        private const val API_KEY = "AIzaSyAVyXObpQbzByr5NC0qVmSCz8t2MJ-dq5Y" // Replace with your actual Gemini API key
+        private const val API_KEY = "API_KEY" // Replace with your actual Gemini API key
         private const val GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$API_KEY"
 
         fun analyzeReport(report: String): String {
@@ -640,3 +645,6 @@ class HealthActivity : ComponentActivity() {
         }
     }
 }
+
+
+

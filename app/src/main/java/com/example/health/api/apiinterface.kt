@@ -55,7 +55,7 @@ class DoctorRepository(private val doctorDao: DoctorDao, private val apiService:
 
 interface FoodAnalyzerApi {
     @Headers("Content-Type: application/json")
-    @POST("v1/models/gemini-1.5-flash:generateContent?key=AIzaSyC0lP_oHp_4jfcvVqBM_RznF8x1QBGNJZw")
+    @POST("v1/models/gemini-1.5-flash:generateContent?key=Api_KEY")
     suspend fun analyzeFood(@Body request: GeminiRequest): Response<GeminiResponse>
 
     companion object {
